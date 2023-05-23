@@ -1,0 +1,75 @@
+{
+  "queues": [
+    {
+      "name": "customer_queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "company_queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "crm",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "crm",
+      "vhost": "/",
+      "destination": "customer_queue",
+      "destination_type": "queue",
+      "routing_key": "customer_key",
+      "arguments": {}
+    },
+    {
+      "source": "crm",
+      "vhost": "/",
+      "destination": "company_queue",
+      "destination_type": "queue",
+      "routing_key": "company_key",
+      "arguments": {}
+    }
+  ],
+  "users": [
+    {
+      "name": "mark",
+      "password": "password",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "mark",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

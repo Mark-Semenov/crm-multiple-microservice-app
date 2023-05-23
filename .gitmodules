@@ -1,0 +1,3 @@
+[submodule "crm-gateway-service"]
+	path = crm-gateway-service
+	url = git@github.com:Mark-Semenov/crm-gateway-service.git

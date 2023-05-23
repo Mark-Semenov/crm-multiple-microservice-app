@@ -1,0 +1,131 @@
+name: bwforum.ru
+services:
+  discovery-service:
+    build: crm-discovery-service/
+    ports:
+      - "8761:8761"
+
+
+  gateway-service:
+    build: crm-gateway-service/
+    depends_on:
+      - discovery-service
+    ports:
+      - "80:80"
+    environment:
+      eureka.instance.hostname: discovery-service
+      eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+
+
+  customer-service:
+    build: crm-customer-service/
+    volumes:
+      - ./log/customer:/app/log
+    depends_on:
+      - discovery-service
+      - gateway-service
+      - mongo
+      - rabbitmq
+    environment:
+      eureka.instance.hostname: discovery-service
+      eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+      spring.data.mongodb.host: mongo
+      spring.data.mongodb.port: 27017
+      spring.data.mongodb.database: customerdb
+      spring.rabbitmq.host: rabbitmq
+
+  company-service:
+    build: crm-company-service/
+    volumes:
+      - ./log/company:/app/log
+    depends_on:
+      - discovery-service
+      - gateway-service
+      - mongo
+      - rabbitmq
+    environment:
+      eureka.instance.hostname: discovery-service
+      eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+      spring.data.mongodb.host: mongo
+      spring.data.mongodb.port: 27017
+      spring.data.mongodb.database: companydb
+      spring.rabbitmq.host: rabbitmq
+
+  compose-service:
+    build: crm-compose-service/
+    volumes:
+      - ./log/compose:/app/log
+    depends_on:
+      - discovery-service
+      - gateway-service
+      - rabbitmq
+    environment:
+      crm.queue.baseUrl: http://gateway-service:80
+      eureka.instance.hostname: discovery-service
+      eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+      spring.rabbitmq.host: rabbitmq
+
+
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=mark
+      - RABBITMQ_DEFAULT_PASS=password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq:/var/lib/rabbitmq
+
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb:/data/db/
+
+  postgres:
+    image: postgres:latest
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    restart: always
+    depends_on:
+      - postgres
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+    ports:
+      - "8000:8080"
+
+  crm-client:
+    build: crm-react-client/
+    ports:
+      - "3001:3001"
+
+networks:
+  default:
+    name: "crm_network"
+
