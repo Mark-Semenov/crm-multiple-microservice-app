@@ -10,3 +10,6 @@
 [submodule "crm-company-service"]
 	path = crm-company-service
 	url = git@github.com:Mark-Semenov/crm-company-service.git
+[submodule "crm-compose-service"]
+	path = crm-compose-service
+	url = git@github.com:Mark-Semenov/crm-compose-service.git
