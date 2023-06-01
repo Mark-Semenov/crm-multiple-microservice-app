@@ -1,13 +1,13 @@
-name: bwforum.ru
+name: crm
 services:
   discovery-service:
-    build: crm-discovery-service/
+    build: discovery-service/
     ports:
       - "8761:8761"
 
 
   gateway-service:
-    build: crm-gateway-service/
+    build: gateway-service/
     depends_on:
       - discovery-service
     ports:
@@ -18,7 +18,7 @@ services:
 
 
   customer-service:
-    build: crm-customer-service/
+    build: customer-service/
     volumes:
       - ./log/customer:/app/log
     depends_on:
@@ -35,7 +35,7 @@ services:
       spring.rabbitmq.host: rabbitmq
 
   company-service:
-    build: crm-company-service/
+    build: company-service/
     volumes:
       - ./log/company:/app/log
     depends_on:
@@ -52,7 +52,7 @@ services:
       spring.rabbitmq.host: rabbitmq
 
   compose-service:
-    build: crm-compose-service/
+    build: compose-service/
     volumes:
       - ./log/compose:/app/log
     depends_on:
@@ -87,6 +87,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./mongodb:/data/db/
 
   postgres:
@@ -121,9 +122,14 @@ services:
       - "8000:8080"
 
   crm-client:
-    build: crm-react-client/
+    depends_on:
+      - customer-service
+      - company-service
+      - compose-service
+      - gateway-service
+    build: crm-client/
     ports:
-      - "3001:3001"
+      - "3000:3000"
 
 networks:
   default:
