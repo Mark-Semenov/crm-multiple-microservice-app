@@ -13,3 +13,6 @@
 [submodule "crm-compose-service"]
 	path = crm-compose-service
 	url = git@github.com:Mark-Semenov/crm-compose-service.git
+[submodule "crm-react-client"]
+	path = crm-react-client
+	url = git@github.com:Mark-Semenov/crm-react-client.git
