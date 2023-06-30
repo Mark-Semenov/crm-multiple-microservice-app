@@ -25,14 +25,13 @@ services:
       - discovery-service
       - gateway-service
       - mongo
-      - rabbitmq
     environment:
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: customerdb
-      spring.rabbitmq.host: rabbitmq
+
 
   company-service:
     build: company-service/
@@ -49,7 +48,7 @@ services:
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: companydb
-      spring.rabbitmq.host: rabbitmq
+
 
   compose-service:
     build: compose-service/
@@ -58,27 +57,25 @@ services:
     depends_on:
       - discovery-service
       - gateway-service
-      - rabbitmq
     environment:
       crm.queue.baseUrl: http://gateway-service:80
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
-      spring.rabbitmq.host: rabbitmq
 
 
-  rabbitmq:
-    image: rabbitmq:3.11-management-alpine
-    restart: always
-    environment:
-      - RABBITMQ_DEFAULT_USER=mark
-      - RABBITMQ_DEFAULT_PASS=password
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
-      - ./rabbitmq:/var/lib/rabbitmq
+#  rabbitmq:
+#    image: rabbitmq:3.11-management-alpine
+#    restart: always
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=mark
+#      - RABBITMQ_DEFAULT_PASS=password
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    volumes:
+#      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+#      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
+#      - ./rabbitmq:/var/lib/rabbitmq
 
 
   mongo:
@@ -107,8 +104,7 @@ services:
     depends_on:
       - postgres
     command:
-      - start-dev
-      - --import-realm
+      - start-dev --import-realm
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
@@ -120,6 +116,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: password
     ports:
       - "8000:8080"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
 
   crm-client:
     depends_on:
