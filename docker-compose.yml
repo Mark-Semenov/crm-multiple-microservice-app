@@ -25,10 +25,11 @@ services:
       - discovery-service
       - gateway-service
       - mongo
+      - keycloak
     environment:
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
-      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
+      KEYCLOAK_URL: http://keycloak:8080/realms/crm_realm/protocol/openid-connect/certs
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: customerdb
@@ -45,7 +46,7 @@ services:
     environment:
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
-      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
+      KEYCLOAK_URL: http://keycloak:8080/realms/crm_realm/protocol/openid-connect/certs
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: companydb
@@ -62,7 +63,7 @@ services:
       crm.queue.baseUrl: http://gateway-service:80
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
-      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
+      KEYCLOAK_URL: http://keycloak:8080/realms/crm_realm/protocol/openid-connect/certs
 
 
   mongo:
@@ -78,7 +79,6 @@ services:
     image: postgres:latest
     volumes:
       - ./postgres:/var/lib/postgresql/data
-#      - ./sql:/docker-entrypoint-initdb.d/:ro
     ports:
       - 5432:5432
     environment:
@@ -93,19 +93,17 @@ services:
       - postgres
     command:
       - start
+      - --db postgres
+      - --db-url jdbc:postgresql://postgres:5432/keycloak
+      - --db-username keycloak
+      - --db-password password
       - --hostname=localhost
       - --hostname-port=8000
       - --hostname-strict-https=false
       - --http-enabled=true
       - --import-realm
     environment:
-#      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_SCHEMA: public
-      DB_PASSWORD: password
+      KC_DB_SCHEMA: public
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: password
     ports:
