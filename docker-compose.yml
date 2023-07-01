@@ -28,6 +28,7 @@ services:
     environment:
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: customerdb
@@ -41,10 +42,10 @@ services:
       - discovery-service
       - gateway-service
       - mongo
-      - rabbitmq
     environment:
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
+      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
       spring.data.mongodb.host: mongo
       spring.data.mongodb.port: 27017
       spring.data.mongodb.database: companydb
@@ -61,21 +62,7 @@ services:
       crm.queue.baseUrl: http://gateway-service:80
       eureka.instance.hostname: discovery-service
       eureka.client.serviceUrl.defaultZone: http://discovery-service:8761/eureka/
-
-
-#  rabbitmq:
-#    image: rabbitmq:3.11-management-alpine
-#    restart: always
-#    environment:
-#      - RABBITMQ_DEFAULT_USER=mark
-#      - RABBITMQ_DEFAULT_PASS=password
-#    ports:
-#      - "5672:5672"
-#      - "15672:15672"
-#    volumes:
-#      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-#      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
-#      - ./rabbitmq:/var/lib/rabbitmq
+      security.oauth2.resourceserver.jwt.issuer-uri: http://keycloak:8000/realms/crm_realm
 
 
   mongo:
@@ -91,6 +78,7 @@ services:
     image: postgres:latest
     volumes:
       - ./postgres:/var/lib/postgresql/data
+#      - ./sql:/docker-entrypoint-initdb.d/:ro
     ports:
       - 5432:5432
     environment:
@@ -104,8 +92,14 @@ services:
     depends_on:
       - postgres
     command:
-      - start-dev --import-realm
+      - start
+      - --hostname=localhost
+      - --hostname-port=8000
+      - --hostname-strict-https=false
+      - --http-enabled=true
+      - --import-realm
     environment:
+#      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
       DB_DATABASE: keycloak
@@ -125,9 +119,11 @@ services:
       - company-service
       - compose-service
       - gateway-service
+      - keycloak
     build: crm-client/
     ports:
       - "3000:3000"
+
 
 networks:
   default:
